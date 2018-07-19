@@ -74,4 +74,9 @@ target/
 .pytest*
 
 # results
+cache.json
+cross_section_cm.txt
+molar_extinction_coefficients.txt
+mtx_phases
+oscillators.txt
 overlaps
