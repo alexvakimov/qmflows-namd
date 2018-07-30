@@ -2,7 +2,7 @@ __author__ = "Felipe Zapata"
 
 # ==========> Standard libraries and third-party <===============
 
-from multipoleObaraSaika import sab
+from .numba_ObaraSaika import sab
 from nac.common import (Matrix, Vector)
 from nac.integrals.multipoleIntegrals import (
     build_primitives_gaussian, general_multipole_matrix)

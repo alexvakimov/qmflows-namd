@@ -6,7 +6,7 @@ from nac.common import (Matrix, Vector)
 
 import numpy as np
 # ==================> Internal modules <====================
-from multipoleObaraSaika import sab_efg  # compiled with cython
+from .numba_ObaraSaika import sab_efg
 
 from typing import (Callable, Dict, List, Tuple)
 

@@ -1,13 +1,6 @@
 
-from Cython.Distutils import build_ext
-from setuptools import Extension, setup
-import numpy as np
-import os
-import shutil
+from setuptools import setup
 
-if shutil.which('icc') is not None:
-    os.environ['CC'] = 'icc'
-    os.environ['LDSHARED'] = 'icc -shared'
 
 setup(
     name='qmflows-namd',
@@ -33,10 +26,6 @@ setup(
         'cython', 'numpy', 'h5py', 'noodles==0.2.4', 'numba', 'qmflows', 'pymonad', 'scipy'],
     dependency_links=[
             "https://github.com/SCM-NV/qmflows/tarball/master#egg=qmflows"],
-    cmdclass={'build_ext': build_ext},
-    ext_modules=[Extension(
-        'multipoleObaraSaika', ['nac/integrals/multipoleObaraSaika.pyx'])],
-    include_dirs=[np.get_include()],
     extras_require={'test': ['coverage', 'pytest', 'pytest-cov']},
     scripts=[
         'scripts/hamiltonians/plot_mos_energies.py',

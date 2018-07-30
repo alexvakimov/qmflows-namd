@@ -1,10 +1,10 @@
 
-from numba import jit, float64
+from numba import jit, njit, float64
 from numpy import (exp, log, pi, sqrt)
 import numpy as np
 
 
-@jit(nopython=True)
+@jit
 def sab(gs1, gs2):
     """
     Primitive overlap terms calculated with the Obara-Saika recurrence relations,
@@ -31,8 +31,8 @@ def sab(gs1, gs2):
         u = e1 * e2 / (e1 + e2)
         p = 1.0 / (2.0 * (e1 + e2))
         for i in range(3):
-            l1x = calcOrbType_ComponentsC(l1, i)
-            l2x = calcOrbType_ComponentsC(l2, i)
+            l1x = get_indexes(l1, i)
+            l2x = get_indexes(l2, i)
             rp = (e1 * r1[i] + e2 * r2[i]) / (e1 + e2)
             rab = r1[i] - r2[i]
             rpa = rp - r1[i]
@@ -43,8 +43,7 @@ def sab(gs1, gs2):
 
         return c1 * c2 * prod
 
-
-@jit(nopython=True)
+@jit
 def sab_efg(gs1, gs2, rc, e, f, g):
     """
     Primitive overlap terms calculated with the Obara-Saika recurrence relations,
@@ -70,8 +69,8 @@ def sab_efg(gs1, gs2, rc, e, f, g):
 
     i = 0 if e != 0 else (1 if f != 0 else 2)
 
-    l1x = calcOrbType_ComponentsC(l1, i)
-    l2x = calcOrbType_ComponentsC(l2, i)
+    l1x = get_indexes(l1, i)
+    l2x = get_indexes(l2, i)
     rp = (e1 * r1[i] + e2 * r2[i]) / (e1 + e2)
     rab = r1[i] - r2[i]
     rpa = rp - r1[i]
@@ -84,7 +83,7 @@ def sab_efg(gs1, gs2, rc, e, f, g):
     return c1 * c2 * prod
 
 
-@jit(nopython=True)
+@njit
 def obaraSaikaMultipole(p, s00x,  xpa, xpb, xpc, i, j, e):
     """
     The  Obara-Saika Scheme to calculate overlap integrals. Explicit expressions
@@ -150,42 +149,7 @@ def obaraSaikaMultipole(p, s00x,  xpa, xpb, xpc, i, j, e):
                  (e - 1) * obaraSaikaMultipole(p, s00x, xpa, xpb, xpc, i, j, e - 2))
 
 
-@jit(nopython=True)
-def calcOrbType_ComponentsC(l, x):
-    """
-    Functions related to the orbital momenta indexes.
-
-    :param l: Angular Momentum Quantum number
-    :param x: Exponent of the X, Y or Z cartesian component.
-    """
-    return orbitalIndexes[l, x]
-
-
-orbitalIndexes = {
-    ("S", 0): 0, ("S", 1): 0, ("S", 2): 0,
-    ("Px", 0): 1, ("Px", 1): 0, ("Px", 2): 0,
-    ("Py", 0): 0, ("Py", 1): 1, ("Py", 2): 0,
-    ("Pz", 0): 0, ("Pz", 1): 0, ("Pz", 2): 1,
-    ("Dxx", 0): 2, ("Dxx", 1): 0, ("Dxx", 2): 0,
-    ("Dxy", 0): 1, ("Dxy", 1): 1, ("Dxy", 2): 0,
-    ("Dxz", 0): 1, ("Dxz", 1): 0, ("Dxz", 2): 1,
-    ("Dyy", 0): 0, ("Dyy", 1): 2, ("Dyy", 2): 0,
-    ("Dyz", 0): 0, ("Dyz", 1): 1, ("Dyz", 2): 1,
-    ("Dzz", 0): 0, ("Dzz", 1): 0, ("Dzz", 2): 2,
-    ("Fxxx", 0): 3, ("Fxxx", 1): 0, ("Fxxx", 2): 0,
-    ("Fxxy", 0): 2, ("Fxxy", 1): 1, ("Fxxy", 2): 0,
-    ("Fxxz", 0): 2, ("Fxxz", 1): 0, ("Fxxz", 2): 1,
-    ("Fxyy", 0): 1, ("Fxyy", 1): 2, ("Fxyy", 2): 0,
-    ("Fxyz", 0): 1, ("Fxyz", 1): 1, ("Fxyz", 2): 1,
-    ("Fxzz", 0): 1, ("Fxzz", 1): 0, ("Fxzz", 2): 2,
-    ("Fyyy", 0): 0, ("Fyyy", 1): 3, ("Fyyy", 2): 0,
-    ("Fyyz", 0): 0, ("Fyyz", 1): 2, ("Fyyz", 2): 1,
-    ("Fyzz", 0): 0, ("Fyzz", 1): 1, ("Fyzz", 2): 2,
-    ("Fzzz", 0): 0, ("Fzzz", 1): 0, ("Fzzz", 2): 3
-}
-
-
-@jit(nopython=True)
+@njit
 def neglect_integral(r, e1, e2, accuracy):
     """
     Compute whether an overlap integral should be neglected
@@ -195,7 +159,7 @@ def neglect_integral(r, e1, e2, accuracy):
     return (r ** 2) > ln
 
 
-@jit
+@njit
 def distance(xs, ys):
     """
     Distance between 2 points
@@ -205,3 +169,39 @@ def distance(xs, ys):
         acc += (x - y) ** 2
 
     return sqrt(acc)
+
+
+dict_indexes = [
+    ("S",    0, 0, 0),
+    ("Px",   1, 0, 0),
+    ("Py",   0, 1, 0),
+    ("Pz",   0, 0, 1),
+    ("Dxx",  2, 0, 0),
+    ("Dxy",  1, 1, 0),
+    ("Dxz",  1, 0, 1),
+    ("Dyy",  0, 2, 0),
+    ("Dyz",  0, 1, 1),
+    ("Dzz",  0, 0, 2),
+    ("Fxxx", 3, 0, 0),
+    ("Fxxy", 2, 1, 0),
+    ("Fxxz", 2, 0, 1),
+    ("Fxyy", 1, 2, 0),
+    ("Fxyz", 1, 1, 1),
+    ("Fxzz", 1, 0, 2),
+    ("Fyyy", 0, 3, 0),
+    ("Fyyz", 0, 2, 1),
+    ("Fyzz", 0, 1, 2),
+    ("Fzzz", 0, 0, 3)
+]
+
+
+# Create a numpy array using the Indexes
+indexes = np.array(dict_indexes, dtype=[('lorb', 'S4'), ('x', '>i4'), ('y', '>i4'), ('z', '>i4')])
+
+
+@jit
+def get_indexes(key, index):
+    """ Replace the orbital index dictionary with a numpy record """
+    k = key.encode()
+    tup = indexes[np.where(indexes['lorb'] == k)]
+    return tup[0][index + 1]
