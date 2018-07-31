@@ -1,15 +1,13 @@
 __author__ = "Felipe Zapata"
 
-# ==========> Standard libraries and third-party <===============
 
-from .numba_ObaraSaika import sab
+# from .numba_ObaraSaika import sab
+from multipoleObaraSaika import sab
 from nac.common import (Matrix, Vector)
 from nac.integrals.multipoleIntegrals import (
     build_primitives_gaussian, general_multipole_matrix)
 from typing import (Dict, List, Tuple)
 import numpy as np
-
-# ====================================<>=======================================
 
 
 def sijContracted(t1: Tuple, t2: Tuple):
